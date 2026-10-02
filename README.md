@@ -4,7 +4,7 @@ Interactive VOR radio-navigation trainer with CDI, RMI and HSI. Runs in the brow
 
 Move the aircraft on a chart around a VOR station and watch the instruments respond.
 
-**Try it online:** https://resorek.github.io/NAV-Instruments-CDI-RMI_HSI/
+**Try it online:** https://resorek.github.io/NAV-Instruments-CDI-RMI-HSI/
 
 ## Run it locally
 
