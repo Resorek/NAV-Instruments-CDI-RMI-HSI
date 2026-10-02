@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VOR Trainer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+
+  <div class="main-col">
+
+  <!-- ===== Mapa ===== -->
+  <main class="map-wrap" id="mapWrap">
+    <svg id="map" xmlns="http://www.w3.org/2000/svg">
+      <g id="gridLayer"></g>
+      <line id="radialLine" class="radial-line" x1="0" y1="0" x2="0" y2="0"/>
+      <g id="obsLayer"></g>
+      <g id="stationLayer"></g>
+      <g id="radialLabel" class="radial-label">
+        <rect x="-25" y="-9" width="50" height="18" rx="3"/>
+        <text id="radialLabelText" x="0" y="0">R360</text>
+      </g>
+      <g id="planeLayer"></g>
+      <g id="scaleBar"></g>
+    </svg>
+  </main>
+
+  <!-- ===== Przyrządy (pasek pod mapą) ===== -->
+  <section class="instruments" aria-label="Instruments">
+    <div class="inst-tile cdi-tile">
+      <div id="cdi" class="instrument"></div>
+      <div class="deg-row obs-row">
+        <label for="obsInput">OBS</label>
+        <button type="button" data-obs="-10">−10</button>
+        <button type="button" data-obs="-1">−1</button>
+        <input id="obsInput" type="text" inputmode="numeric" maxlength="3" autocomplete="off">
+        <button type="button" data-obs="1">+1</button>
+        <button type="button" data-obs="10">+10</button>
+      </div>
+    </div>
+    <div class="inst-tile rmi-tile">
+      <div id="rmi" class="instrument"></div>
+    </div>
+    <div class="inst-tile hsi-tile">
+      <div id="hsi" class="instrument"></div>
+      <div class="deg-row obs-row" title="Heading bug">
+        <label for="bugInput">BUG</label>
+        <button type="button" data-bug="-10">−10</button>
+        <button type="button" data-bug="-1">−1</button>
+        <input id="bugInput" type="text" inputmode="numeric" maxlength="3" autocomplete="off">
+        <button type="button" data-bug="1">+1</button>
+        <button type="button" data-bug="10">+10</button>
+      </div>
+    </div>
+  </section>
+
+  </div>
+
+  <!-- ===== Panel sterowania ===== -->
+  <aside class="panel">
+
+    <section class="card">
+      <h2>Aircraft</h2>
+
+      <label class="lbl" for="hdgInput">Heading (HDG)</label>
+      <div class="deg-row">
+        <button type="button" data-hdg="-10">−10</button>
+        <button type="button" data-hdg="-1">−1</button>
+        <input id="hdgInput" type="text" inputmode="numeric" maxlength="3" autocomplete="off">
+        <button type="button" data-hdg="1">+1</button>
+        <button type="button" data-hdg="10">+10</button>
+      </div>
+      <input id="hdgSlider" type="range" min="0" max="359" step="1">
+
+      <label class="lbl" for="gsSlider">Ground speed (GS) <output id="gsOut">120 kt</output></label>
+      <input id="gsSlider" type="range" min="60" max="300" step="10" value="120">
+      <div class="row">
+        <label class="lbl" for="timeScale">Time acceleration</label>
+        <select id="timeScale">
+          <option value="1">×1</option>
+          <option value="10">×10</option>
+          <option value="30" selected>×30</option>
+          <option value="60">×60</option>
+        </select>
+      </div>
+
+      <div class="btn-row">
+        <button type="button" id="flyBtn" class="primary">▶ Fly</button>
+        <button type="button" id="resetBtn" title="Return to the position from before you pressed “Fly”">↺ Reset</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Readouts</h2>
+      <dl class="readouts">
+        <div>
+          <dt><b>HDG</b> heading</dt><dd id="roHdg">---</dd>
+        </div>
+        <div title="Relative bearing – angle from the aircraft's nose (clockwise) to the station">
+          <dt><b>RB</b> relative bearing</dt><dd id="roRb">---</dd>
+        </div>
+        <div title="Radial – magnetic bearing of the aircraft FROM the station">
+          <dt><b>QDR</b> from station</dt><dd id="roQdr">---</dd>
+        </div>
+        <div title="Magnetic bearing TO the station (QDR + 180°)">
+          <dt><b>QDM</b> to station</dt><dd id="roQdm">---</dd>
+        </div>
+        <div class="wide" title="Slant range – DME measures the straight-line distance from the aircraft to the station. The aircraft is flying at 5,000 ft, so DME shows a distance even directly over the station (about 0.8 NM).">
+          <dt><b>DME</b> slant range</dt><dd id="roDme">---</dd>
+        </div>
+      </dl>
+    </section>
+
+    <section class="card">
+      <h2>Map</h2>
+      <label class="check"><input type="checkbox" id="showRadial" checked> Radial line</label>
+      <label class="check"><input type="checkbox" id="showHdg" checked> Heading line</label>
+      <label class="check"><input type="checkbox" id="showObs" checked> OBS line (selected course)</label>
+      <div class="row">
+        <label class="lbl" for="stationType">Station</label>
+        <select id="stationType">
+          <option value="VOR">VOR (no DME)</option>
+          <option value="VOR-DME" selected>VOR-DME</option>        </select>
+      </div>
+    </section>
+
+    <section class="card help">
+      <h2>Controls</h2>
+      <ul>
+        <li><b>Drag the aircraft</b> – move it</li>
+        <li><b>Drag the circle ahead of the nose</b> – turn it</li>
+        <li><b>Mouse wheel</b> over the aircraft – heading ±5°, over the map – zoom</li>
+        <li><b>Double-click</b> on the map – move the aircraft there</li>
+        <li><b>← / →</b> – heading ±1° (with Shift ±10°)</li>
+        <li><b>Space</b> – fly / stop</li>
+        <li><b>OBS knob</b> – drag, or scroll over the CDI (with Shift ±10°)</li>
+        <li><b>HSI knobs</b> – left: course (shared with the CDI's OBS), right: heading bug; click the right knob to set the bug to the current heading</li>      </ul>
+    </section>
+  </aside>
+</div>
+
+<script src="cdi.js"></script>
+<script src="hsi.js"></script>
+<script src="rmi.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

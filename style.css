@@ -1,0 +1,308 @@
+:root {
+  --bg: #161b22;
+  --card: #212a35;
+  --line: #2f3b49;
+  --text: #e6ebf1;
+  --muted: #8d9bab;
+  --accent: #3d9be0;
+  --digits: #7ee0a1;
+
+  /* kolory "mapy lotniczej" */
+  --chart: #f3efe2;
+  --grid-minor: #e4dece;
+  --grid-major: #d0c7ae;
+  --nav: #1d4f9c;
+  --plane: #c0262d;
+  --course: #b0228c;      /* wybrany kurs – magenta jak w awionice */
+}
+
+* { box-sizing: border-box; }
+
+html, body { height: 100%; margin: 0; }
+
+body {
+  font-family: system-ui, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.app { display: flex; height: 100vh; }
+
+/* lewa część: mapa, a pod nią pasek z przyrządami */
+.main-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== Mapa ===== */
+.map-wrap {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  background: var(--chart);
+}
+
+#map {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+  user-select: none;
+}
+
+.grid-minor { stroke: var(--grid-minor); stroke-width: 1; }
+.grid-major { stroke: var(--grid-major); stroke-width: 1; }
+
+/* róża VOR */
+.rose-ring  { fill: none; stroke: var(--nav); stroke-width: 1.3; }
+.rose-tick  { stroke: var(--nav); stroke-width: 1; }
+.rose-label {
+  fill: var(--nav);
+  font-size: 10px;
+  font-weight: 600;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+.rose-arrow { fill: var(--nav); }
+.nav-sym    { fill: #fff; stroke: var(--nav); stroke-width: 1.6; stroke-linejoin: round; }
+.nav-fill   { fill: var(--nav); }
+
+/* ramka z danymi stacji */
+
+/* linia radialu */
+.radial-line { stroke: var(--nav); stroke-width: 1.2; stroke-dasharray: 7 5; opacity: .75; }
+.radial-label rect { fill: #fff; stroke: var(--nav); stroke-width: 1; }
+.radial-label text {
+  fill: var(--nav);
+  font-size: 11px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+/* wybrany kurs (OBS) */
+.obs-line  { stroke: var(--course); stroke-width: 1.6; opacity: .8; }
+.obs-arrow { fill: none; stroke: var(--course); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.obs-label rect { fill: #fff; stroke: var(--course); stroke-width: 1; }
+.obs-label text {
+  fill: var(--course);
+  font-size: 11px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+/* samolot */
+.plane-part  { fill: #fff; stroke: var(--plane); stroke-width: 1.6; stroke-linejoin: round; }
+.plane-line  { stroke: var(--plane); stroke-width: 1.6; stroke-linecap: round; }
+.hdg-line    { stroke: var(--plane); stroke-width: 1.2; stroke-dasharray: 2 5; opacity: .8; }
+.hit         { fill: transparent; }
+.plane-body  { cursor: grab; }
+.dragging .plane-body { cursor: grabbing; }
+.handle      { cursor: crosshair; }
+.handle .knob { fill: #fff; stroke: var(--plane); stroke-width: 1.6; }
+
+/* skala */
+.scale-bg    { fill: rgba(255, 255, 255, .8); stroke: var(--grid-major); }
+.scale-line  { fill: none; stroke: #333; stroke-width: 1.5; }
+.scale-label { fill: #333; font-size: 11px; text-anchor: middle; }
+
+/* ===== Pasek przyrządów (pod mapą) ===== */
+.instruments {
+  --inst-h: clamp(180px, min(36vh, 22vw), 340px);   /* wysokość przyrządów – 3 muszą się zmieścić w rzędzie */
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 16px;
+  padding: 12px;
+  background: #0f1419;
+  border-top: 1px solid #0a0d11;
+}
+.cdi-tile { width: calc(var(--inst-h) - 44px); }      /* kwadratowe CDI + rząd OBS = --inst-h */
+.hsi-tile { width: calc((var(--inst-h) - 44px) * 760 / 728); }   /* proporcje HSI 760 × 728 */
+.rmi-tile { width: calc(var(--inst-h) * 320 / 390); } /* proporcje RMI 320 × 390 */
+
+/* ===== Panel sterowania ===== */
+.panel {
+  width: 320px;
+  flex-shrink: 0;
+  overflow-y: auto;
+  padding: 16px;
+  border-left: 1px solid #0c1015;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 14px 14px;
+  margin-bottom: 12px;
+}
+.card h2 {
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--muted);
+}
+
+.lbl {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  margin: 10px 0 6px;
+}
+.lbl:first-of-type { margin-top: 0; }
+.lbl output { color: var(--digits); font-family: ui-monospace, Consolas, monospace; }
+
+.row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 10px; }
+.row .lbl { margin: 0; }
+
+button, select, input[type="text"] {
+  font: inherit;
+  font-size: 13px;
+  color: var(--text);
+  background: #2c3846;
+  border: 1px solid #3a4858;
+  border-radius: 6px;
+}
+button { padding: 6px 10px; cursor: pointer; }
+button:hover { background: #364457; }
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+button.primary:hover { background: #4ba8ec; }
+button.primary.active { background: #d9822b; border-color: #d9822b; }
+select { padding: 5px 8px; }
+
+.deg-row { display: flex; gap: 4px; }
+.deg-row button { flex: 1; padding: 6px 0; }
+.deg-row input {
+  width: 64px;
+  text-align: center;
+  font: 600 18px ui-monospace, Consolas, monospace;
+  color: var(--digits);
+  background: #10151b;
+}
+
+input[type="range"] { width: 100%; accent-color: var(--accent); margin: 8px 0 0; }
+
+.btn-row { display: flex; gap: 8px; margin-top: 14px; }
+.btn-row button { flex: 1; padding: 8px; }
+
+.check { display: flex; align-items: center; gap: 8px; font-size: 13px; margin-bottom: 6px; cursor: pointer; }
+.check input { accent-color: var(--accent); }
+
+/* odczyty */
+.readouts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0; }
+.readouts div {
+  background: #10151b;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 7px 10px;
+}
+.readouts div[title] { cursor: help; }
+.readouts .wide { grid-column: span 2; }
+.readouts dt { font-size: 11px; color: var(--muted); }
+.readouts dt b { color: var(--text); margin-right: 4px; }
+.readouts dd {
+  margin: 2px 0 0;
+  font: 600 20px/1.2 ui-monospace, Consolas, monospace;
+  color: var(--digits);
+}
+
+/* przyrządy */
+.instrument svg { display: block; width: 100%; height: auto; }
+
+.obs-row { margin-top: 8px; }
+.obs-row label {
+  align-self: center;
+  width: 30px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.obs-row input { width: 52px; }
+
+/* HSI */
+.hsi-tick    { stroke: #fff; }
+.hsi-num {
+  fill: #fff;
+  font: 700 48px "Arial Narrow", "Roboto Condensed", Arial, sans-serif;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+.hsi-mark    { stroke: #fff; stroke-width: 3.5; stroke-linecap: round; }
+.hsi-mark45  { stroke: #fff; stroke-width: 6; }
+.hsi-gs      { fill: #fff; font: 700 28px Arial, Helvetica, sans-serif; text-anchor: middle; dominant-baseline: central; }
+.hsi-bug     { fill: none; stroke: #f0903b; stroke-width: 5; stroke-linejoin: round; }
+.hsi-pointer { fill: #fff; }
+.hsi-dev     { fill: #d5cc24; }
+.hsi-tofrom  { fill: #fff; }
+.hsi-aircraft { fill: none; stroke: #f0903b; stroke-width: 7; }
+.hsi-flag    { fill: #fff; font: 400 34px Arial, Helvetica, sans-serif; text-anchor: middle; dominant-baseline: central; }
+.hsi-knob    { cursor: grab; touch-action: none; }
+
+/* RMI */
+.rmi-svg .seg    { fill: #161917; }
+.rmi-svg .seg.on { fill: #f3f3ea; }
+.rmi-label { fill: #d8cb9a; font: 700 12px Arial, Helvetica, sans-serif; }
+.rmi-tick  { stroke: #f4f4f4; }
+.rmi-num {
+  fill: #f4f4f4;
+  font: 500 20px "Arial Narrow", "Roboto Condensed", Arial, sans-serif;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+.rmi-needle        { fill: #dccfa7; stroke: #5d553e; stroke-width: .6; }
+.rmi-needle.narrow { fill: #f1ecd2; }
+.rmi-narrow-shaft  { stroke: #f1ecd2; stroke-width: 2.2; stroke-dasharray: 7 4; }
+.rmi-dbl-arrow     { fill: none; stroke: #d8cb9a; stroke-width: 1.5; stroke-linejoin: round; }
+.rmi-knob          { cursor: pointer; }
+.rmi-knob-rot      { transition: transform .3s ease; }
+@media (prefers-reduced-motion: reduce) { .rmi-knob-rot { transition: none; } }
+
+/* CDI */
+.cdi-tick  { stroke: #f2f2f2; }
+.cdi-num {
+  fill: #f2f2f2;
+  font: 500 21px "Arial Narrow", "Roboto Condensed", Arial, sans-serif;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+.cdi-index  { fill: #e4d01c; }
+.cdi-scale  { stroke: #e6e6e6; stroke-width: 1.2; }
+.cdi-dot    { fill: #e6e6e6; }
+.cdi-needle { fill: #f6f6f6; }
+.cdi-ann {
+  fill: #f2f2f2;
+  font: 700 10.5px Arial, Helvetica, sans-serif;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+.cdi-nav      { fill: #66c24a; }
+.cdi-nav.flag { fill: #ff3b30; }
+.cdi-tri      { fill: none; stroke: #f2f2f2; stroke-width: 1.3; stroke-linejoin: round; }
+.cdi-knob     { cursor: grab; touch-action: none; }
+.cdi-knob-text {
+  fill: #d8d8d8;
+  font: 700 10px Arial, Helvetica, sans-serif;
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+}
+
+.help ul { margin: 0; padding-left: 18px; font-size: 12.5px; color: var(--muted); line-height: 1.6; }
+.help b { color: var(--text); font-weight: 600; }
+
+/* wąskie ekrany: wszystko jedno pod drugim */
+@media (max-width: 820px) {
+  .app { flex-direction: column; height: auto; }
+  .map-wrap { height: 65vh; flex: none; }
+  .instruments { --inst-h: 290px; }    /* przyrządy się nie zmieszczą obok siebie – idą pod sobą */
+  .panel { width: auto; border-left: 0; }
+}
